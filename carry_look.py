@@ -22,7 +22,6 @@ class Node(object):
         self.buff = []
 
     def __str__(self):
-        #return "Node on level %d, value %d " % (self.level, self.value)
         tmp = ''
         if len(self.buff) > 0:
             tmp = self.buff[0]
@@ -49,6 +48,12 @@ class Node(object):
 
     def is_leaf(self):
         return self.left_son == None and self.right_son == None
+
+    def transmit(self):
+        if not self.value == '0':
+            self.right_son.value = self.value
+            self.left_son.value = self.value
+
 
 
 class lookupTree(object):
@@ -123,67 +128,26 @@ class lookupTree(object):
         #if it's time to compute value, do it
         if root.level == step:
             root.compute_value()
-            #each nonleaf, when it computes its value it should also
-            #replace the value of its left son with the value of its right son
-            root.left_son.value = root.right_son.value
-            if root.left_son.value != 'p':
-                root.left_son.done = True
-            root.buff.append(root.right_son.value)
-
         else:
             if not root.is_leaf():
                 self.propagate_up(root.left_son, step)
                 self.propagate_up(root.right_son, step)
+
 
     def propagate_down(self, root):
         '''
             Performs an downwards step, sending values that the nodes received from the right child
             to the children of a node (both of them) as explained in the carry lookahead algorithm
         '''
-        if len(root.buff) > 0:
-            #if there is a value to pass
-            if not root.is_leaf():
-                temp = root.buff[0]
-                #pass values to both sons
-                root.left_son.buff.append(temp)
-                root.right_son.buff.append(temp)
-                root.buff.remove(temp)
-            else:
-                #if it's a leaf, just change your value to the one received
-                temp = root.buff[0]
-
-                if not root.done and temp != 'p':
-                    root.value = temp
-                    root.buff.remove(temp)
-                    root.done = True
+        if root.level == step - 1:
+            root.left_son.value = root.right_son.value
+            root.right_son.value = '0'
+            root.value = '0'
         else:
             if not root.is_leaf():
-                self.propagate_down(root.left_son)
-                self.propagate_down(root.right_son)
+                self.propagate_up(root.left_son, step)
+                self.propagate_up(root.right_son, step)
 
-
-    def propagate_down2(self, root):
-        '''
-            Performs an downwards step, sending values that the nodes received from the right child
-            to the children of a node (both of them) as explained in the carry lookahead algorithm
-        '''
-        if len(root.buff) > 0:
-            if not root.is_leaf():
-                temp = root.buff[0]
-                root.value = temp
-                root.buff.remove(temp)
-                root.left_son.buff.append(root.value)
-                root.right_son.buff.append(root.value)
-            else:
-                temp = root.buff[0]
-                if not root.done and temp != 'p':
-                    root.value = temp
-                    root.buff.remove(temp)
-                    root.done = True
-        else:
-            if not root.is_leaf():
-                self.propagate_down2(root.left_son)
-                self.propagate_down2(root.right_son)
 
     def propagating_values(self, root):
         if root == None:
@@ -195,7 +159,7 @@ class lookupTree(object):
             return exist_left or exist_right
 
 
-a = ['g', 's', 'g', 'p']
+a = ['g', 'p', 's', 'p']
 #a = ['s','g','p','p','g','p','s','s','p','p','s','g','p','p','p','s']
 mytree = lookupTree()
 r = mytree.build_tree(a)

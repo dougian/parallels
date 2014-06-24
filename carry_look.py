@@ -1,6 +1,3 @@
-from math import ceil
-
-
 class Node(object):
     '''
         A node of the tree. Knows its children and its value.
@@ -66,7 +63,6 @@ class Node(object):
             if not self.level == 1:
                 self.right_son.value = self.value
                 self.left_son.value = self.value
-
             else:
                 if not self.right_son.done and not self.value == 'p':
                     self.right_son.value = self.value
@@ -76,7 +72,7 @@ class Node(object):
                     self.left_son.done = True
 
 
-class lookupTree(object):
+class lookahead_Tree(object):
     '''
     A carry lookahead tree. It's a binary tree, but initially there are only leaves
     round by round the nodes are populated, built from ground-up.
@@ -88,8 +84,6 @@ class lookupTree(object):
     def get_depth(self):
         return self.root.level + 1
 
-
-
     def build_tree(self, valuesvec):
         '''
             Builds an initial binary tree with values of valuesvec as leaves and
@@ -97,7 +91,6 @@ class lookupTree(object):
             Returns the root of the tree to the user
         '''
         nodes = [Node(val, 0) for val in valuesvec]
-
         num_pairs = len(valuesvec) / 2
         it = 0
 
@@ -109,25 +102,23 @@ class lookupTree(object):
             if len(temp) == 1:
                 self.root = temp[0]
 
-            #print(temp)
-
             nodes = temp
             num_pairs = len(nodes) / 2
 
         return self.root
 
 
-    def printTree(self, root):
+    def print_tree(self, root):
         '''
             Prints the tree.
         '''
         if root == None:
             pass
         else:
-            self.printTree(root.left_son)
+            self.print_tree(root.left_son)
             ind = "\t" * root.level
             print(ind + str(root))
-            self.printTree(root.right_son)
+            self.print_tree(root.right_son)
 
 
     def leaves_array(self, root):
@@ -192,7 +183,8 @@ class lookupTree(object):
         if step > root.level + 1:
             root.transmit()
             if root.level > 0:
-                print('level %d transmits %s on step %d' %(root.level,root.value,step))
+                #print('level %d transmits %s on step %d' %(root.level,root.value,step))
+                pass
 
     def propagating_values(self, root):
         leaves = self.leaves_array(root)
@@ -203,25 +195,19 @@ class lookupTree(object):
 #a = ['g', 'p', 's', 'p']
 #a = ['p','p','g','g']
 a = ['s','g','p','p','g','p','s','s','p','p','s','g','p','p','p','s']
-mytree = lookupTree()
+mytree = lookahead_Tree()
 r = mytree.build_tree(a)
 
 step = 0
-mytree.printTree(r)
+mytree.print_tree(r)
 depth = r.level + 1
 while not mytree.propagating_values(r):
 
     step += 1
     if step < depth:
         mytree.propagate_up(r, step)
-        print('Up')
-        #mytree.printTree(r)
-
-    print('Down')
     mytree.propagate_down(r,step)
 
-    mytree.printTree(r)
-    print('finished step %d' % step)
 print('After %d steps, all the leaves have successfully computed their values' % step)
 print(mytree.leaves_array(r))
 

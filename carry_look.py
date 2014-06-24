@@ -25,35 +25,55 @@ class Node(object):
         tmp = ''
         if len(self.buff) > 0:
             tmp = self.buff[0]
-        return "{%s}[%s]" % (self.value, tmp)
+        return "{%s}" % self.value
 
 
     def __repr__(self):
         tmp = ''
         if len(self.buff) > 0:
             tmp = self.buff[0]
-        return "{%s}[%s]" % (self.value, tmp)
+        return "{%s}" % self.value
 
     def compute_value(self):
         l_val = self.right_son.value
         r_val = self.left_son.value
 
-        if l_val == 's' or r_val == 's':
-            self.value = 's'
-        else:
-            if l_val == 'g' or r_val == 'g':
-                self.value = 'g'
+        if l_val == 'p':
+            self.value = r_val
+        elif l_val == 's':
+            if r_val == 'g':
+                self.value = r_val
             else:
-                self.value = 'p'
+                self.value = 's'
+        else:
+            if r_val == 's':
+                self.value = r_val
+            else:
+                self.value = 'g'
+
+
+    def set_val(self):
+        pass
 
     def is_leaf(self):
         return self.left_son == None and self.right_son == None
 
-    def transmit(self):
-        if not self.value == '0':
-            self.right_son.value = self.value
-            self.left_son.value = self.value
+    def is_done(self):
+        return self.done
 
+    def transmit(self):
+        if self.value != '0' and not self.is_leaf():
+            if not self.level == 1:
+                self.right_son.value = self.value
+                self.left_son.value = self.value
+
+            else:
+                if not self.right_son.done and not self.value == 'p':
+                    self.right_son.value = self.value
+                    self.right_son.done = True
+                if not self.left_son.done and not self.value == 'p':
+                    self.left_son.value = self.value
+                    self.left_son.done = True
 
 
 class lookupTree(object):
@@ -64,6 +84,10 @@ class lookupTree(object):
 
     def __init__(self):
         self.root = None
+
+    def get_depth(self):
+        return self.root.level + 1
+
 
 
     def build_tree(self, valuesvec):
@@ -112,7 +136,7 @@ class lookupTree(object):
         '''
         arr = []
         if root.is_leaf():
-            arr.append(root.value)
+            arr.append(root)
             return arr
         else:
             a = self.leaves_array(root.left_son)
@@ -134,57 +158,71 @@ class lookupTree(object):
                 self.propagate_up(root.right_son, step)
 
 
-    def propagate_down(self, root):
+    def propagate_down(self, root, step):
         '''
             Performs an downwards step, sending values that the nodes received from the right child
             to the children of a node (both of them) as explained in the carry lookahead algorithm
         '''
-        if root.level == step - 1:
-            root.left_son.value = root.right_son.value
-            root.right_son.value = '0'
-            root.value = '0'
+        d = self.get_depth() - 1
+        if (root.level == step - 1 or root.level == 2 * d - step + 1 ) and not root.is_leaf():
+            #print('changes on level %d' %root.level)
+            #take the value from the right son, give it to the left son
+            #delete your own value.
+            if root.right_son.value != '0' and step <= depth:
+                root.left_son.value = root.right_son.value
+                if root.left_son.value != 'p' and root.left_son.is_leaf():
+                    root.left_son.done = True
+                root.right_son.value = '0'
+                #root.value = '0'
+
+            #exception of the rule is for the root:
+            if step == self.get_depth():
+                print("Root value: %s " % root.value)
+                root.value = 's'
+
+            self.propagate_down(root.left_son, step)
+            self.propagate_down(root.right_son, step)
+
         else:
             if not root.is_leaf():
-                self.propagate_up(root.left_son, step)
-                self.propagate_up(root.right_son, step)
 
+                self.propagate_down(root.left_son, step)
+                self.propagate_down(root.right_son, step)
+
+        if step > root.level + 1:
+            root.transmit()
+            if root.level > 0:
+                print('level %d transmits %s on step %d' %(root.level,root.value,step))
 
     def propagating_values(self, root):
-        if root == None:
-            return False
-        else:
-            assume = len(root.buff) > 0
-            exist_left = assume or self.propagating_values(root.left_son)
-            exist_right = assume or self.propagating_values(root.left_son)
-            return exist_left or exist_right
+        leaves = self.leaves_array(root)
+        done_trees = [l.is_done() for l in leaves]
+        return all(done_trees)
 
 
-a = ['g', 'p', 's', 'p']
-#a = ['s','g','p','p','g','p','s','s','p','p','s','g','p','p','p','s']
+#a = ['g', 'p', 's', 'p']
+#a = ['p','p','g','g']
+a = ['s','g','p','p','g','p','s','s','p','p','s','g','p','p','p','s']
 mytree = lookupTree()
 r = mytree.build_tree(a)
 
 step = 0
 mytree.printTree(r)
-
-while step == 0 or mytree.propagating_values(r):
+depth = r.level + 1
+while not mytree.propagating_values(r):
 
     step += 1
-    if r.value == '0':
+    if step < depth:
         mytree.propagate_up(r, step)
         print('Up')
-        mytree.printTree(r)
-        print()
+        #mytree.printTree(r)
+
+    print('Down')
+    mytree.propagate_down(r,step)
 
     mytree.printTree(r)
-    print()
-    print('doing Down')
-
-    mytree.propagate_down2(r)
-    print("done")
-    mytree.printTree(r)
-    print()
-
+    print('finished step %d' % step)
+print('After %d steps, all the leaves have successfully computed their values' % step)
 print(mytree.leaves_array(r))
 
 __author__ = 'dougian'

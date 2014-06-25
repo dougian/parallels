@@ -3,6 +3,8 @@
 # carry lookahead addition algorithm
 
 import carry_look
+import random
+
 
 # ---------------------------------------------------------------------------------------
 def subaddition(a, b):
@@ -47,8 +49,37 @@ def serial(a, b):
 
     return _sum						# return the sum
 
-# ---------------------------------------------------------------------------------------	
+# ---------------------------------------------------------------------------------------
+def test_sums(a, b):
+    value = subaddition(a, b)
+    mytree = carry_look.lookahead_Tree()
+    r = mytree.build_tree(value)
+    (v, time) = mytree.run(r)
+    s = producesum(a, b, v)						# find the sum of these numbers
+    serial_result = serial(a, b)
+
+    if not serial_result == s:
+        raise Exception('Results are not the same')
+
+    return time
+
+def build_rand(n, iter):
+    r = []
+    for i in range(n):
+        r.append(random.choice(iter))
+    return r
+
+def bench():
+    pop = [0, 1]
+    times = []
+    for size in range(10, 110, 10):
+        a = build_rand(size,pop)
+        b = build_rand(size,pop)
+        times.append(test_sums(a, b))
+    return times
+
 if __name__=="__main__":
+    bench()
     print("Carry Lookahead Addition Algorithm\n")
 
     #
@@ -81,13 +112,17 @@ if __name__=="__main__":
     #
     print('\nSerial Algorithm')
 
+    serial_result = serial(a, b)
     print('Number 1:    ', a)
     print('NUmber 2:    ', b)
-    print('Result  : ', serial(a, b))
+    print('Result  : ', serial_result)
 
-    print('\nParallel Algorithm')
+    print('\nParallel Algorithm in %d steps' %time)
     print('Number 1:    ', a)
     print('NUmber 2:    ', b)
     print('Result  : ', s)
+
+    if not serial_result == s:
+        raise Exception('Results are not the same')
 # ---------------------------------------------------------------------------------------
 

@@ -5,6 +5,7 @@
 import carry_look
 import random
 
+import matplotlib.pyplot as plt
 
 # ---------------------------------------------------------------------------------------
 def subaddition(a, b):
@@ -51,14 +52,15 @@ def serial(a, b):
 
 # ---------------------------------------------------------------------------------------
 def test_sums(a, b):
-    value = subaddition(a, b)
+    val = subaddition(a, b)
     mytree = carry_look.lookahead_Tree()
-    r = mytree.build_tree(value)
+    r = mytree.build_tree(val)
     (v, time) = mytree.run(r)
     s = producesum(a, b, v)						# find the sum of these numbers
     serial_result = serial(a, b)
 
     if not serial_result == s:
+        #pass
         raise Exception('Results are not the same')
 
     return time
@@ -72,14 +74,25 @@ def build_rand(n, iter):
 def bench():
     pop = [0, 1]
     times = []
-    for size in range(10, 110, 10):
+    for i in range(3,10):
+        size = 2 ** i
         a = build_rand(size,pop)
         b = build_rand(size,pop)
         times.append(test_sums(a, b))
     return times
 
 if __name__=="__main__":
-    bench()
+    xx = [2 ** i for i in range(3,10)]
+    total_times = bench()
+    print(total_times)
+    plt.plot(xx,total_times)
+    def_time = [n+1 for n in xx]
+    plt.plot(xx, def_time)
+    plt.legend(['Steps required','Steps for serial'])
+    plt.show()
+
+if False:
+    print(total_times)
     print("Carry Lookahead Addition Algorithm\n")
 
     #

@@ -16,19 +16,12 @@ class Node(object):
         self.level = level
         self.left_son = l_son
         self.right_son = r_son
-        self.buff = []
 
     def __str__(self):
-        tmp = ''
-        if len(self.buff) > 0:
-            tmp = self.buff[0]
         return "{%s}" % self.value
 
 
     def __repr__(self):
-        tmp = ''
-        if len(self.buff) > 0:
-            tmp = self.buff[0]
         return "{%s}" % self.value
 
     def compute_value(self):

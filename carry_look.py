@@ -80,6 +80,7 @@ class lookahead_Tree(object):
 
     def __init__(self):
         self.root = None
+        self.result = '0'
 
     def get_depth(self):
         return self.root.level + 1
@@ -95,13 +96,10 @@ class lookahead_Tree(object):
         it = 0
 
         while (num_pairs > 0):
-
             it += 1
             temp = [Node('0', it, nodes[2 * i], nodes[2 * i + 1]) for i in range(int(num_pairs))]
-
             if len(temp) == 1:
                 self.root = temp[0]
-
             nodes = temp
             num_pairs = len(nodes) / 2
 
@@ -159,7 +157,7 @@ class lookahead_Tree(object):
             #print('changes on level %d' %root.level)
             #take the value from the right son, give it to the left son
             #delete your own value.
-            if root.right_son.value != '0' and step <= depth:
+            if root.right_son.value != '0' and step <= self.get_depth():
                 root.left_son.value = root.right_son.value
                 if root.left_son.value != 'p' and root.left_son.is_leaf():
                     root.left_son.done = True
@@ -168,7 +166,8 @@ class lookahead_Tree(object):
 
             #exception of the rule is for the root:
             if step == self.get_depth():
-                print("Root value: %s " % root.value)
+                #print("Root value: %s " % root.value)
+                self.result = root.value
                 root.value = 's'
 
             self.propagate_down(root.left_son, step)
@@ -176,15 +175,12 @@ class lookahead_Tree(object):
 
         else:
             if not root.is_leaf():
-
                 self.propagate_down(root.left_son, step)
                 self.propagate_down(root.right_son, step)
 
         if step > root.level + 1:
             root.transmit()
-            if root.level > 0:
-                #print('level %d transmits %s on step %d' %(root.level,root.value,step))
-                pass
+
 
     def propagating_values(self, root):
         leaves = self.leaves_array(root)
@@ -192,23 +188,18 @@ class lookahead_Tree(object):
         return all(done_trees)
 
 
-#a = ['g', 'p', 's', 'p']
-#a = ['p','p','g','g']
-a = ['s','g','p','p','g','p','s','s','p','p','s','g','p','p','p','s']
-mytree = lookahead_Tree()
-r = mytree.build_tree(a)
+    def run(self, r):
+        step = 0
+        depth = self.get_depth()
+        while not self.propagating_values(r):
+            step += 1
+            if step < depth:
+                self.propagate_up(r, step)
+            self.propagate_down(r,step)
+        res = [l.value for l in self.leaves_array(r)]
+        res = [self.result] + res
+        return (res, step)
 
-step = 0
-mytree.print_tree(r)
-depth = r.level + 1
-while not mytree.propagating_values(r):
 
-    step += 1
-    if step < depth:
-        mytree.propagate_up(r, step)
-    mytree.propagate_down(r,step)
-
-print('After %d steps, all the leaves have successfully computed their values' % step)
-print(mytree.leaves_array(r))
 
 __author__ = 'dougian'

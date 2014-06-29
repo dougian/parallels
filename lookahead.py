@@ -4,8 +4,8 @@
 
 import carry_look
 import random
+import argparse
 
-import matplotlib.pyplot as plt
 
 # ---------------------------------------------------------------------------------------
 def subaddition(a, b):
@@ -52,6 +52,10 @@ def serial(a, b):
 
 # ---------------------------------------------------------------------------------------
 def test_sums(a, b):
+    '''
+        Returns the time (in steps) it took for the parallel lookahead tree
+        to compute the sum
+    '''
     val = subaddition(a, b)
     mytree = carry_look.lookahead_Tree()
     r = mytree.build_tree(val)
@@ -60,21 +64,25 @@ def test_sums(a, b):
     serial_result = serial(a, b)
 
     if not serial_result == s:
-        #pass
         raise Exception('Results are not the same')
 
     return time
 
 def build_rand(n, iter):
+    '''
+        Returns a random list
+        containing values from iter
+    '''
     r = []
     for i in range(n):
         r.append(random.choice(iter))
     return r
 
-def bench():
+def bench(ranges):
+
     pop = [0, 1]
     times = []
-    for i in range(3,10):
+    for i in ranges:
         size = 2 ** i
         a = build_rand(size,pop)
         b = build_rand(size,pop)
@@ -82,60 +90,35 @@ def bench():
     return times
 
 if __name__=="__main__":
-    xx = [2 ** i for i in range(3,10)]
-    total_times = bench()
-    print(total_times)
-    plt.plot(xx,total_times)
-    def_time = [n+1 for n in xx]
-    plt.plot(xx, def_time)
-    plt.legend(['Steps required','Steps for serial'])
-    plt.show()
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--sum",metavar='N', type=str,nargs='+',
+                    help="first binary number")
 
-if False:
-    print(total_times)
-    print("Carry Lookahead Addition Algorithm\n")
+    #group.add_argument("bin2", type=str,
+     #               help="second binary number")
+    group.add_argument('--bench', help='Show a bench (requires matplotlib)',
+                        action="store_true")
+    args = parser.parse_args()
+    if args.bench:
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            print("Matplotlib could not be imported, exiting!")
+            exit()
 
-    #
-    # 	phase 1
-    #
-    a = [0, 0, 0, 1, 1, 0, 1, 0]		# the 1st number
-    b = [1, 1, 0, 0, 1, 1, 0, 1]		# the 2nd number to add
-
-    value = subaddition(a, b)			# generate values
-
-    print('number 1: ', a)
-    print('number 2: ', b)
-    print('values  : ', value)
-    #
-    # 	phase 2
-    #
-
-    mytree = carry_look.lookahead_Tree()
-    r = mytree.build_tree(value)
-    (v, time) = mytree.run(r)
-
-    #
-    # 	phase 3
-    #
-    #v = ['s','s','s','g','s','g','s','s','s']	# assume a random list of 's' and 'g'
-    s = producesum(a, b, v)						# find the sum of these numbers
-
-    #
-    #	serial algorithm of O(N) steps
-    #
-    print('\nSerial Algorithm')
-
-    serial_result = serial(a, b)
-    print('Number 1:    ', a)
-    print('NUmber 2:    ', b)
-    print('Result  : ', serial_result)
-
-    print('\nParallel Algorithm in %d steps' %time)
-    print('Number 1:    ', a)
-    print('NUmber 2:    ', b)
-    print('Result  : ', s)
-
-    if not serial_result == s:
-        raise Exception('Results are not the same')
-# ---------------------------------------------------------------------------------------
-
+        ranges = range(3,10);
+        xx = [2 ** i for i in ranges]
+        total_times = bench(ranges)
+        print(total_times)
+        plt.plot(xx,total_times)
+        def_time = [n+1 for n in xx]
+        plt.plot(xx, def_time)
+        plt.legend(['Steps required','Steps for serial'])
+        plt.ylim(0,100)
+        plt.show()
+    else:
+        a = [int(c) for c in args.sum[0]]
+        b = [int(c) for c in args.sum[1]]
+        print('%d steps required for the computation' % test_sums(a, b))
+        print('Result = ',serial(a, b))

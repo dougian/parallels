@@ -20,11 +20,13 @@ class Node(object):
     def __str__(self):
         return "{%s}" % self.value
 
-
     def __repr__(self):
         return "{%s}" % self.value
 
     def compute_value(self):
+        '''
+            Computes the value of a node from the values of its sons
+        '''
         l_val = self.right_son.value
         r_val = self.left_son.value
 
@@ -52,6 +54,12 @@ class Node(object):
         return self.done
 
     def transmit(self):
+        '''
+            Transmits the value stored in a node to its children.
+            Does not perform any action if the node is empty or if
+            its value is p and does not update the values of children
+            that already have aquired a final value
+        '''
         if self.value != '0' and not self.is_leaf():
             if not self.level == 1:
                 self.right_son.value = self.value
@@ -162,7 +170,7 @@ class lookahead_Tree(object):
                 #print("Root value: %s " % root.value)
                 self.result = root.value
                 root.value = 's'
-
+            #this has to be included for the transmit to work correctly
             self.propagate_down(root.left_son, step)
             self.propagate_down(root.right_son, step)
 
@@ -176,12 +184,19 @@ class lookahead_Tree(object):
 
 
     def propagating_values(self, root):
+        '''
+        Checks if there are still values that need to be computed
+        or if every leaf has a finalised value (s/g)
+        '''
         leaves = self.leaves_array(root)
         done_trees = [l.is_done() for l in leaves]
         return all(done_trees)
 
 
     def run(self, r):
+        '''
+            Performs one step in the logic of the lookahead tree
+        '''
         step = 0
         depth = self.get_depth()
         while not self.propagating_values(r):

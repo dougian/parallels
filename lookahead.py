@@ -5,7 +5,12 @@
 import carry_look
 import random
 import argparse
+from math import *
 
+# ---------------------------------------------------------------------------------------
+def expand( n ):
+# Expand a number to the closer 2^k number
+    return ([0] * (int(pow(2, ceil(log(len(n), 2))))-len(n)))+n
 
 # ---------------------------------------------------------------------------------------
 def subaddition(a, b):
@@ -120,5 +125,5 @@ if __name__=="__main__":
     else:
         a = [int(c) for c in args.sum[0]]
         b = [int(c) for c in args.sum[1]]
-        print('%d steps required for the computation' % test_sums(a, b))
-        print('Result = ',serial(a, b))
+        print('%d steps required for the computation' % test_sums(expand(a), expand(b)))
+        print('Result = %s' % str(serial(a, b)))

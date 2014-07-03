@@ -100,8 +100,6 @@ if __name__=="__main__":
     group.add_argument("--sum",metavar='N', type=str,nargs='+',
                     help="first binary number")
 
-    #group.add_argument("bin2", type=str,
-     #               help="second binary number")
     group.add_argument('--bench', help='Show a bench (requires matplotlib)',
                         action="store_true")
     args = parser.parse_args()
